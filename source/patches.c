@@ -35,7 +35,6 @@
 
 #include "patches.h"
 #include "fs.h"
-#include "exceptions.h"
 #include "memory.h"
 #include "config.h"
 #include "utils.h"

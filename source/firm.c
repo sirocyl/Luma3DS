@@ -28,7 +28,6 @@
 #include "config.h"
 #include "utils.h"
 #include "fs.h"
-#include "exceptions.h"
 #include "patches.h"
 #include "memory.h"
 #include "strings.h"

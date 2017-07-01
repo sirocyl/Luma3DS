@@ -29,7 +29,6 @@
 #include "fs.h"
 #include "firm.h"
 #include "utils.h"
-#include "exceptions.h"
 #include "draw.h"
 #include "strings.h"
 #include "buttons.h"
@@ -134,9 +133,6 @@ void main(int argc, char **argv, u32 magicWord)
 
         goto boot;
     }
-
-    detectAndProcessExceptionDumps();
-    installArm9Handlers();
 
     firmType = NATIVE_FIRM;
 
