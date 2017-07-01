@@ -48,7 +48,6 @@ dir_source := source
 dir_patches := patches
 dir_arm11 := arm11
 dir_chainloader := chainloader
-dir_k11_extension := k11_extension
 dir_build := build
 dir_out := out
 
@@ -79,22 +78,20 @@ firm: $(dir_out)/boot.firm
 clean:
 	@$(MAKE) -C $(dir_arm11) clean
 	@$(MAKE) -C $(dir_chainloader) clean
-	@$(MAKE) -C $(dir_k11_extension) clean
 	@rm -rf $(dir_out) $(dir_build)
 
 .PRECIOUS: $(dir_build)/%.bin
 
 .PHONY: $(dir_arm11)
 .PHONY: $(dir_chainloader)
-.PHONY: $(dir_k11_extension)
 
 $(dir_out)/$(name)$(revision).7z: all
 	@mkdir -p "$(@D)"
 	@7z a -mx $@ ./$(@D)/*
 
-$(dir_out)/boot.firm: $(dir_build)/arm11.elf $(dir_build)/main.elf $(dir_build)/k11_extension.bin
+$(dir_out)/boot.firm: $(dir_build)/arm11.elf $(dir_build)/main.elf
 	@mkdir -p "$(@D)"
-	@firmtool build $@ -D $^ -A 0x18180000 0x18000000 -C XDMA NDMA XDMA
+	@firmtool build $@ -D $^ -A 0x18180000 0x18000000 -C XDMA NDMA
 
 $(dir_build)/arm11.elf: $(dir_arm11)
 	@mkdir -p "$(@D)"
@@ -102,10 +99,6 @@ $(dir_build)/arm11.elf: $(dir_arm11)
 
 $(dir_build)/main.elf: $(bundled) $(objects)
 	$(LINK.o) -T linker.ld $(OUTPUT_OPTION) $^
-
-$(dir_build)/k11_extension.bin: $(dir_k11_extension)
-	@mkdir -p "$(@D)"
-	@$(MAKE) -C $<
 
 $(dir_build)/%.bin.o: $(dir_build)/%.bin
 	@$(bin2o)
