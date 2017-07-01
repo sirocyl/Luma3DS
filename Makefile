@@ -49,9 +49,6 @@ dir_patches := patches
 dir_arm11 := arm11
 dir_chainloader := chainloader
 dir_k11_extension := k11_extension
-dir_sysmodules := sysmodules
-dir_loader := $(dir_sysmodules)/loader
-dir_rosalina := $(dir_sysmodules)/rosalina
 dir_build := build
 dir_out := out
 
@@ -64,8 +61,6 @@ objects = $(patsubst $(dir_source)/%.s, $(dir_build)/%.o, \
           $(call rwildcard, $(dir_source), *.s *.c)))
 
 bundled = $(dir_build)/reboot.bin.o $(dir_build)/emunand.bin.o $(dir_build)/chainloader.bin.o
-
-modules = $(dir_build)/loader.cxi $(dir_build)/rosalina.cxi
 
 define bin2o
 	bin2s $< | $(AS) -o $(@)
@@ -85,8 +80,6 @@ clean:
 	@$(MAKE) -C $(dir_arm11) clean
 	@$(MAKE) -C $(dir_chainloader) clean
 	@$(MAKE) -C $(dir_k11_extension) clean
-	@$(MAKE) -C $(dir_loader) clean
-	@$(MAKE) -C $(dir_rosalina) clean
 	@rm -rf $(dir_out) $(dir_build)
 
 .PRECIOUS: $(dir_build)/%.bin
@@ -94,20 +87,14 @@ clean:
 .PHONY: $(dir_arm11)
 .PHONY: $(dir_chainloader)
 .PHONY: $(dir_k11_extension)
-.PHONY: $(dir_loader)
-.PHONY: $(dir_rosalina)
 
 $(dir_out)/$(name)$(revision).7z: all
 	@mkdir -p "$(@D)"
 	@7z a -mx $@ ./$(@D)/*
 
-$(dir_out)/boot.firm: $(dir_build)/modules.bin $(dir_build)/arm11.elf $(dir_build)/main.elf $(dir_build)/k11_extension.bin
+$(dir_out)/boot.firm: $(dir_build)/arm11.elf $(dir_build)/main.elf $(dir_build)/k11_extension.bin
 	@mkdir -p "$(@D)"
-	@firmtool build $@ -D $^ -A 0x18180000 0x18000000 -C XDMA XDMA NDMA XDMA
-
-$(dir_build)/modules.bin: $(modules)
-	@mkdir -p "$(@D)"
-	cat $^ > $@
+	@firmtool build $@ -D $^ -A 0x18180000 0x18000000 -C XDMA NDMA XDMA
 
 $(dir_build)/arm11.elf: $(dir_arm11)
 	@mkdir -p "$(@D)"
@@ -117,14 +104,6 @@ $(dir_build)/main.elf: $(bundled) $(objects)
 	$(LINK.o) -T linker.ld $(OUTPUT_OPTION) $^
 
 $(dir_build)/k11_extension.bin: $(dir_k11_extension)
-	@mkdir -p "$(@D)"
-	@$(MAKE) -C $<
-
-$(dir_build)/loader.cxi: $(dir_loader)
-	@mkdir -p "$(@D)"
-	@$(MAKE) -C $<
-
-$(dir_build)/rosalina.cxi: $(dir_rosalina)
 	@mkdir -p "$(@D)"
 	@$(MAKE) -C $<
 
@@ -143,8 +122,7 @@ $(dir_build)/memory.o $(dir_build)/strings.o: CFLAGS += -O3
 $(dir_build)/config.o: CFLAGS += -DCONFIG_TITLE="\"$(name) $(revision) configuration\""
 $(dir_build)/patches.o: CFLAGS += -DVERSION_MAJOR="$(version_major)" -DVERSION_MINOR="$(version_minor)"\
 						-DVERSION_BUILD="$(version_build)" -DISRELEASE="$(is_release)" -DCOMMIT_HASH="0x$(commit)"
-$(dir_build)/firm.o: $(dir_build)/modules.bin
-$(dir_build)/firm.o: CFLAGS += -DLUMA_SECTION0_SIZE="$(shell $(size) $(dir_build)/modules.bin)"
+$(dir_build)/firm.o: CFLAGS += -DLUMA_SECTION0_SIZE="0"
 
 $(dir_build)/bundled.h: $(bundled)
 	@$(foreach f, $(bundled),\
